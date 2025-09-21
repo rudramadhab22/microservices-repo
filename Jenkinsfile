@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_COMPOSE_FILE = 'microservices-repo/docker-compose.yml'
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
     }
 
     stages {
@@ -24,7 +24,7 @@ pipeline {
 
         stage('Build GreetSevice') {
             steps {
-                dir('microservices-repo/GreetSevice') {
+                dir('GreetSevice') {
                     echo "🔨 Building GreetSevice..."
                     sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
@@ -35,7 +35,7 @@ pipeline {
 
         stage('Build WelcomeServices') {
             steps {
-                dir('microservices-repo/WelcomeServices') {
+                dir('WelcomeServices') {
                     echo "🔨 Building WelcomeServices..."
                     sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
@@ -46,7 +46,7 @@ pipeline {
 
         stage('Build UrekaServer') {
             steps {
-                dir('microservices-repo/UrekaServer') {
+                dir('UrekaServer') {
                     echo "🔨 Building UrekaServer..."
                     sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
@@ -73,7 +73,7 @@ pipeline {
                         services.each { svc ->
                             def imageName = "rudramadhab22/${svc.toLowerCase()}:latest"
                             echo "Pushing image: ${imageName}"
-                            sh "docker tag microservices-repo_${svc.toLowerCase()} $imageName"
+                            sh "docker tag ${svc.toLowerCase()}:latest $imageName"
                             sh "docker push $imageName"
                         }
                     }
