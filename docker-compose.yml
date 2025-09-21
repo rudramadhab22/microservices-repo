@@ -3,7 +3,7 @@ version: '3.9'
 services:
   eureka-server:
     build: ./UrekaServer
-    image: rudramadhab22/urekaserver:latest
+    image: rudra1java/urekaserver:latest
     container_name: eureka-server
     ports:
       - "8761:8761"
@@ -15,7 +15,7 @@ services:
 
   greet-service:
     build: ./GreetSevice
-    image: rudramadhab22/greetsevice:latest
+    image: rudra1java/greetsevice:latest
     container_name: greet-service
     ports:
       - "9095:9095"
@@ -28,7 +28,7 @@ services:
 
   welcome-service:
     build: ./WelcomeServices
-    image: rudramadhab22/welcomeservices:latest
+    image: rudra1java/welcomeservices:latest
     container_name: welcome-service
     ports:
       - "9092:9092"
