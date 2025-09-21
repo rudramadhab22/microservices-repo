@@ -2,48 +2,46 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_PREFIX = 'rudra1java'
-        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        DOCKER_HUB_CRED = 'docker-hub-cred' // Your Jenkins Docker Hub credentials
+        DOCKER_USERNAME = 'rudra1java'
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
-                echo "✅ Checking out code from Git..."
                 git branch: 'main', url: 'https://github.com/rudramadhab22/microservices-repo.git'
+                sh 'ls -R' // Debug: verify workspace
             }
         }
 
-        stage('Build GreetService') {
-            steps {
-                dir('GreetSevice') {
-                    echo "🔨 Building GreetService..."
-                    sh 'chmod +x mvnw'
-                    sh './mvnw clean package -DskipTests'
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+        stage('Build Microservices') {
+            parallel {
+                stage('Build GreetService') {
+                    steps {
+                        dir('GreetSevice') {
+                            sh 'chmod +x mvnw'
+                            sh './mvnw clean package -DskipTests'
+                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                        }
+                    }
                 }
-            }
-        }
-
-        stage('Build WelcomeService') {
-            steps {
-                dir('WelcomeServices') {
-                    echo "🔨 Building WelcomeService..."
-                    sh 'chmod +x mvnw'
-                    sh './mvnw clean package -DskipTests'
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                stage('Build WelcomeService') {
+                    steps {
+                        dir('WelcomeServices') {
+                            sh 'chmod +x mvnw'
+                            sh './mvnw clean package -DskipTests'
+                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                        }
+                    }
                 }
-            }
-        }
-
-        stage('Build EurekaServer') {
-            steps {
-                dir('UrekaServer') {
-                    echo "🔨 Building EurekaServer..."
-                    sh 'chmod +x mvnw'
-                    sh './mvnw clean package -DskipTests'
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                stage('Build EurekaServer') {
+                    steps {
+                        dir('UrekaServer') {
+                            sh 'chmod +x mvnw'
+                            sh './mvnw clean package -DskipTests'
+                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                        }
+                    }
                 }
             }
         }
@@ -51,55 +49,42 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 echo "🚀 Building Docker images..."
-                sh "docker-compose -f ${DOCKER_COMPOSE_FILE} build"
+                sh 'docker compose build'
             }
         }
 
         stage('Push Docker Images') {
             steps {
-                script {
-                    echo "🔑 Logging in to Docker Hub..."
-                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-cred') {
-                        echo "📦 Pushing GreetService image..."
-                        sh "docker tag greetsevice:latest ${IMAGE_PREFIX}/greetsevice:latest"
-                        sh "docker push ${IMAGE_PREFIX}/greetsevice:latest"
-
-                        echo "📦 Pushing WelcomeService image..."
-                        sh "docker tag welcomeservices:latest ${IMAGE_PREFIX}/welcomeservices:latest"
-                        sh "docker push ${IMAGE_PREFIX}/welcomeservices:latest"
-
-                        echo "📦 Pushing EurekaServer image..."
-                        sh "docker tag urekaserver:latest ${IMAGE_PREFIX}/urekaserver:latest"
-                        sh "docker push ${IMAGE_PREFIX}/urekaserver:latest"
-                    }
+                echo "🔑 Logging in to Docker Hub..."
+                withDockerRegistry([credentialsId: "${DOCKER_HUB_CRED}", url: "https://index.docker.io/v1/"]) {
+                    sh 'docker compose push'
                 }
             }
         }
 
         stage('Deploy Containers') {
             steps {
-                echo "📦 Deploying containers with docker-compose..."
-                sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d"
+                echo "📦 Deploying containers..."
+                sh 'docker compose up -d'
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                echo "✅ Listing running containers..."
-                sh 'docker ps'
+                echo "✅ Deployment complete! Verify your services."
             }
         }
     }
 
     post {
+        always {
+            echo "Pipeline finished."
+        }
         success {
-            echo '✅ Pipeline completed successfully!'
+            echo "🎉 Pipeline succeeded!"
         }
         failure {
-            echo '❌ Pipeline failed. Check the logs for errors.'
-        }
-        always {
-            echo 'Pipeline finished!'
+            echo "❌ Pipeline failed!"
         }
     }
 }

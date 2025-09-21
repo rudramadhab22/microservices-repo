@@ -15,7 +15,7 @@ services:
 
   greet-service:
     build: ./GreetSevice
-    image: rudra1java/greetsevice:latest
+    image: rudra1java/greetservice:latest
     container_name: greet-service
     ports:
       - "9095:9095"
