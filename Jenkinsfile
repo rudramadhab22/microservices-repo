@@ -16,7 +16,7 @@ pipeline {
         stage('Build GreetService') {
             steps {
                 echo "🔨 Building GreetService..."
-                dir('greet-service') {
+                dir('GreetService') {
                     sh 'mvn clean package -DskipTests'
                 }
             }
@@ -25,7 +25,7 @@ pipeline {
         stage('Build WelcomeService') {
             steps {
                 echo "🔨 Building WelcomeService..."
-                dir('welcome-service') {
+                dir('WelcomeService') {
                     sh 'mvn clean package -DskipTests'
                 }
             }
@@ -34,7 +34,7 @@ pipeline {
         stage('Build EurekaServer') {
             steps {
                 echo "🔨 Building EurekaServer..."
-                dir('eureka-server') {
+                dir('EurekaServer') {
                     sh 'mvn clean package -DskipTests'
                 }
             }
