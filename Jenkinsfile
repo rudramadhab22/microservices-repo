@@ -2,17 +2,16 @@ pipeline {
     agent any
 
     environment {
+        IMAGE_PREFIX = 'rudra1java'
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
-        DOCKER_HUB_CREDENTIAL = 'docker-hub-cred'
-        DOCKER_HUB_ACCOUNT = 'rudra1java'
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Code') {
             steps {
                 echo "✅ Checking out code from Git..."
                 git branch: 'main', url: 'https://github.com/rudramadhab22/microservices-repo.git'
-                sh 'ls -R' // Debug: list all files
             }
         }
 
@@ -20,6 +19,7 @@ pipeline {
             steps {
                 dir('GreetSevice') {
                     echo "🔨 Building GreetService..."
+                    sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
@@ -30,6 +30,7 @@ pipeline {
             steps {
                 dir('WelcomeServices') {
                     echo "🔨 Building WelcomeService..."
+                    sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
@@ -40,6 +41,7 @@ pipeline {
             steps {
                 dir('UrekaServer') {
                     echo "🔨 Building EurekaServer..."
+                    sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
@@ -48,10 +50,8 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                script {
-                    echo "🚀 Building Docker images..."
-                    sh "docker compose -f ${DOCKER_COMPOSE_FILE} build"
-                }
+                echo "🚀 Building Docker images..."
+                sh "docker-compose -f ${DOCKER_COMPOSE_FILE} build"
             }
         }
 
@@ -59,18 +59,18 @@ pipeline {
             steps {
                 script {
                     echo "🔑 Logging in to Docker Hub..."
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_HUB_CREDENTIAL}") {
-                        echo "Pushing GreetService..."
-                        sh "docker tag greetsevice:latest ${DOCKER_HUB_ACCOUNT}/greetservice:latest"
-                        sh "docker push ${DOCKER_HUB_ACCOUNT}/greetservice:latest"
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-cred') {
+                        echo "📦 Pushing GreetService image..."
+                        sh "docker tag greetsevice:latest ${IMAGE_PREFIX}/greetsevice:latest"
+                        sh "docker push ${IMAGE_PREFIX}/greetsevice:latest"
 
-                        echo "Pushing WelcomeService..."
-                        sh "docker tag welcome-service:latest ${DOCKER_HUB_ACCOUNT}/welcomeservices:latest"
-                        sh "docker push ${DOCKER_HUB_ACCOUNT}/welcomeservices:latest"
+                        echo "📦 Pushing WelcomeService image..."
+                        sh "docker tag welcomeservices:latest ${IMAGE_PREFIX}/welcomeservices:latest"
+                        sh "docker push ${IMAGE_PREFIX}/welcomeservices:latest"
 
-                        echo "Pushing EurekaServer..."
-                        sh "docker tag eureka-server:latest ${DOCKER_HUB_ACCOUNT}/eurekaserver:latest"
-                        sh "docker push ${DOCKER_HUB_ACCOUNT}/eurekaserver:latest"
+                        echo "📦 Pushing EurekaServer image..."
+                        sh "docker tag urekaserver:latest ${IMAGE_PREFIX}/urekaserver:latest"
+                        sh "docker push ${IMAGE_PREFIX}/urekaserver:latest"
                     }
                 }
             }
@@ -78,19 +78,15 @@ pipeline {
 
         stage('Deploy Containers') {
             steps {
-                script {
-                    echo "🚀 Deploying containers..."
-                    sh "docker compose -f ${DOCKER_COMPOSE_FILE} up -d"
-                }
+                echo "📦 Deploying containers with docker-compose..."
+                sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d"
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                script {
-                    echo "📦 Listing running containers..."
-                    sh "docker ps"
-                }
+                echo "✅ Listing running containers..."
+                sh 'docker ps'
             }
         }
     }
@@ -100,10 +96,10 @@ pipeline {
             echo '✅ Pipeline completed successfully!'
         }
         failure {
-            echo '❌ Pipeline failed! Check logs.'
+            echo '❌ Pipeline failed. Check the logs for errors.'
         }
         always {
-            echo 'Pipeline finished.'
+            echo 'Pipeline finished!'
         }
     }
 }
