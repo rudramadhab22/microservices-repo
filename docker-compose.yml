@@ -1,6 +1,9 @@
+version: '3.9'
+
 services:
   eureka-server:
-    build: ./UrekaServer       # Correct folder name
+    build: ./UrekaServer
+    image: rudramadhab22/urekaserver:latest
     container_name: eureka-server
     ports:
       - "8761:8761"
@@ -11,7 +14,8 @@ services:
       - EUREKA_CLIENT_FETCH_REGISTRY=false
 
   greet-service:
-    build: ./GreetSevice       # Correct folder name
+    build: ./GreetSevice
+    image: rudramadhab22/greetsevice:latest
     container_name: greet-service
     ports:
       - "9095:9095"
@@ -23,7 +27,8 @@ services:
       - eureka-server
 
   welcome-service:
-    build: ./WelcomeServices   # Correct folder name
+    build: ./WelcomeServices
+    image: rudramadhab22/welcomeservices:latest
     container_name: welcome-service
     ports:
       - "9092:9092"
