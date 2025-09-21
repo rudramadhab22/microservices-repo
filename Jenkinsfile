@@ -2,21 +2,28 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_COMPOSE_FILE = 'MicroserviceCICD/docker-compose.yml'
+        DOCKER_COMPOSE_FILE = 'microservices-repo/docker-compose.yml'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "✅ Checking out code from Git..."
+                echo "✅ Checking out code from GitHub..."
                 git branch: 'main', url: 'https://github.com/rudramadhab22/microservices-repo.git'
+            }
+        }
+
+        stage('Debug Workspace') {
+            steps {
+                echo "🔍 Debug: Listing all files in workspace..."
+                sh 'ls -R'
             }
         }
 
         stage('Build GreetService') {
             steps {
                 echo "🔨 Building GreetService..."
-                dir('MicroserviceCICD/GreetService') {
+                dir('microservices-repo/GreetService') {
                     sh 'mvn clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
@@ -26,7 +33,7 @@ pipeline {
         stage('Build WelcomeService') {
             steps {
                 echo "🔨 Building WelcomeService..."
-                dir('MicroserviceCICD/WelcomeService') {
+                dir('microservices-repo/WelcomeService') {
                     sh 'mvn clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
@@ -36,7 +43,7 @@ pipeline {
         stage('Build EurekaServer') {
             steps {
                 echo "🔨 Building EurekaServer..."
-                dir('MicroserviceCICD/EurekaServer') {
+                dir('microservices-repo/EurekaServer') {
                     sh 'mvn clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
