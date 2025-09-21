@@ -6,18 +6,9 @@ pipeline {
     }
 
     stages {
-
-        stage('Debug Workspace') {
+        stage('Checkout') {
             steps {
-                echo "🔍 Debug: Listing all files in workspace..."
-                sh 'pwd'
-                sh 'ls -R'
-            }
-        }
-
-        stage('Checkout Code') {
-            steps {
-                echo "✅ Checking out code from GitHub..."
+                echo "✅ Checking out code..."
                 git branch: 'main', url: 'https://github.com/rudramadhab22/microservices-repo.git'
             }
         }
@@ -55,11 +46,11 @@ pipeline {
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build & Deploy Docker Images') {
             steps {
                 script {
-                    echo "🚀 Building Docker images..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} build"
+                    echo "🚀 Building Docker images and starting containers..."
+                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
                 }
             }
         }
@@ -69,47 +60,33 @@ pipeline {
                 script {
                     echo "🔑 Logging in to Docker Hub..."
                     docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-cred') {
-                        def services = ['GreetSevice', 'WelcomeServices', 'UrekaServer']
-                        services.each { svc ->
-                            def imageName = "rudramadhab22/${svc.toLowerCase()}:latest"
-                            echo "Pushing image: ${imageName}"
-                            sh "docker tag ${svc.toLowerCase()}:latest $imageName"
-                            sh "docker push $imageName"
-                        }
+                        sh 'docker push rudramadhab22/greetsevice:latest'
+                        sh 'docker push rudramadhab22/welcomeservices:latest'
+                        sh 'docker push rudramadhab22/urekaserver:latest'
                     }
-                }
-            }
-        }
-
-        stage('Deploy Containers') {
-            steps {
-                script {
-                    echo "🛑 Stopping any running containers..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
-
-                    echo "🚀 Starting containers with Docker Compose..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d"
                 }
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                echo "📦 Listing running Docker containers..."
-                sh 'docker ps'
+                script {
+                    echo "📦 Listing running containers..."
+                    sh 'docker ps'
+                }
             }
         }
     }
 
     post {
         success {
-            echo "✅ Pipeline completed successfully!"
+            echo '✅ Pipeline succeeded!'
         }
         failure {
-            echo "❌ Pipeline failed. Check logs for errors."
+            echo '❌ Pipeline failed! Check logs.'
         }
         always {
-            echo "Pipeline finished."
+            echo 'Pipeline finished.'
         }
     }
 }
