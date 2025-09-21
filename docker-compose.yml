@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_APPLICATION_NAME=UrekaServer
+      - SERVER_PORT=8761
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+
+  greet-service:
+    build: ./greet-service
+    container_name: greet-service
+    ports:
+      - "9095:9095"
+    environment:
+      - SPRING_APPLICATION_NAME=GreetService
+      - SERVER_PORT=9095
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+
+  welcome-service:
+    build: ./welcome-service
+    container_name: welcome-service
+    ports:
+      - "9092:9092"
+    environment:
+      - SPRING_APPLICATION_NAME=WelcomeServices
+      - SERVER_PORT=9092
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
