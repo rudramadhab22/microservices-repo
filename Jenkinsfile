@@ -6,51 +6,53 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Debug Workspace') {
+            steps {
+                echo "🔍 Debug: Listing all files in workspace..."
+                sh 'pwd'
+                sh 'ls -R'
+            }
+        }
+
+        stage('Checkout Code') {
             steps {
                 echo "✅ Checking out code from GitHub..."
                 git branch: 'main', url: 'https://github.com/rudramadhab22/microservices-repo.git'
             }
         }
 
-        stage('Debug Workspace') {
+        stage('Build GreetSevice') {
             steps {
-                echo "🔍 Debug: Listing all files in workspace..."
-                sh 'ls -R'
-            }
-        }
-
-        stage('Build GreetService') {
-            steps {
-                echo "🔨 Building GreetService..."
                 dir('microservices-repo/GreetSevice') {
-                    sh 'mvn clean package -DskipTests'
+                    echo "🔨 Building GreetSevice..."
+                    sh './mvnw clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
 
-        stage('Build WelcomeService') {
+        stage('Build WelcomeServices') {
             steps {
-                echo "🔨 Building WelcomeService..."
-                dir('microservices-repo/WelcomeService') {
-                    sh 'mvn clean package -DskipTests'
+                dir('microservices-repo/WelcomeServices') {
+                    echo "🔨 Building WelcomeServices..."
+                    sh './mvnw clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
 
-        stage('Build EurekaServer') {
+        stage('Build UrekaServer') {
             steps {
-                echo "🔨 Building EurekaServer..."
-                dir('microservices-repo/EurekaServer') {
-                    sh 'mvn clean package -DskipTests'
+                dir('microservices-repo/UrekaServer') {
+                    echo "🔨 Building UrekaServer..."
+                    sh './mvnw clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
 
-        stage('Build Docker Images & Deploy') {
+        stage('Docker Compose Deploy') {
             steps {
                 script {
                     echo "🛑 Stopping any running containers..."
@@ -64,23 +66,21 @@ pipeline {
 
         stage('Verify Deployment') {
             steps {
-                script {
-                    echo "📦 Listing running containers..."
-                    sh 'docker ps'
-                }
+                echo "📦 Listing running Docker containers..."
+                sh 'docker ps'
             }
         }
     }
 
     post {
         success {
-            echo '✅ Deployment successful!'
+            echo "✅ Pipeline completed successfully!"
         }
         failure {
-            echo '❌ Deployment failed!'
+            echo "❌ Pipeline failed. Check logs for errors."
         }
         always {
-            echo 'Pipeline finished!'
+            echo "Pipeline finished."
         }
     }
 }
