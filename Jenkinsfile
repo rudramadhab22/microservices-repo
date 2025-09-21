@@ -23,7 +23,7 @@ pipeline {
         stage('Build GreetService') {
             steps {
                 echo "🔨 Building GreetService..."
-                dir('microservices-repo/GreetService') {
+                dir('microservices-repo/GreetSevice') {
                     sh 'mvn clean package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
