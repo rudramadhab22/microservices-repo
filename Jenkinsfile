@@ -9,7 +9,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "✅ Checking out code from Git..."
-                git branch: 'main', url: 'https://github.com/yourusername/microservices-repo.git'
+                git branch: 'main', url: 'https://github.com/rudramadhab22/microservices-repo.git'
+
             }
         }
 
