@@ -10,14 +10,33 @@ pipeline {
             steps {
                 echo "✅ Checking out code from Git..."
                 git branch: 'main', url: 'https://github.com/rudramadhab22/microservices-repo.git'
-
             }
         }
 
-        stage('Build Microservices JARs') {
+        stage('Build GreetService') {
             steps {
-                echo "🔨 Building all microservices using Maven..."
-                sh 'mvn clean package -DskipTests'
+                echo "🔨 Building GreetService..."
+                dir('greet-service') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build WelcomeService') {
+            steps {
+                echo "🔨 Building WelcomeService..."
+                dir('welcome-service') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build EurekaServer') {
+            steps {
+                echo "🔨 Building EurekaServer..."
+                dir('eureka-server') {
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
 
