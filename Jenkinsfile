@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        DOCKER_COMPOSE_FILE = 'MicroserviceCICD/docker-compose.yml'
     }
 
     stages {
@@ -16,8 +16,9 @@ pipeline {
         stage('Build GreetService') {
             steps {
                 echo "🔨 Building GreetService..."
-                dir('GreetService') {
+                dir('MicroserviceCICD/GreetService') {
                     sh 'mvn clean package -DskipTests'
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
@@ -25,8 +26,9 @@ pipeline {
         stage('Build WelcomeService') {
             steps {
                 echo "🔨 Building WelcomeService..."
-                dir('WelcomeService') {
+                dir('MicroserviceCICD/WelcomeService') {
                     sh 'mvn clean package -DskipTests'
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
@@ -34,8 +36,9 @@ pipeline {
         stage('Build EurekaServer') {
             steps {
                 echo "🔨 Building EurekaServer..."
-                dir('EurekaServer') {
+                dir('MicroserviceCICD/EurekaServer') {
                     sh 'mvn clean package -DskipTests'
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
